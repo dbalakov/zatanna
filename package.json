@@ -1,0 +1,21 @@
+{
+  "name": "dbalakov",
+  "version": "0.0.1",
+  "description": "Potgresql DAO"
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dbalakov/nodejs-pg-dao.git"
+  },
+  "keywords": [
+    "pg",
+    "dao"
+  ],
+  "author": "Dmitry Balakov",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/dbalakov/nodejs-pg-dao/issues"
+  }
+}
