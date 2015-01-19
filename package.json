@@ -15,7 +15,7 @@
     "url": "git@github.com:dbalakov/nodejs-dao.git"
   },
   "bugs": {
-    "url": "http://github.com/dbalakov/nodejs-dao/issues"
+    "url": "https://github.com/dbalakov/nodejs-dao/issues"
   },
   "license": "MIT",
   "author": {
@@ -23,15 +23,16 @@
     "email": "dmitry@balakov.net",
     "url": "http://github.com/dbalakov/"
   },
-  "bugs": {
-    "url": "https://github.com/dbalakov/nodejs-dao/issues"
-  },
   "devDependencies": {
-    "mocha": "~2.1.0"
+    "mocha": "~2.1.0",
+    "chai": "~1.10.0",
+    "sinon": "~1.12.2"
   },
   "dependencies": {
-    "bluebird": "~2.7.1"
+    "bluebird": "~2.7.1",
+    "pg": "~4.2.0"
   },
+  "main": "./index.js",
   "_id": "nodejs-dao@2.7.1",
   "readme": "DAO"
 }
