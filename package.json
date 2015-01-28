@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "bluebird": "~2.7.1",
-    "pg": "~4.2.0"
+    "pg": "~4.2.0",
+    "require-directory": "~2.0.0"
   },
   "main": "./index.js",
   "_id": "nodejs-dao@2.7.1",
