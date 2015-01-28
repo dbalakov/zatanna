@@ -1,5 +1,5 @@
 {
-  "name": "dbalakov",
+  "name": "zatanna",
   "description": "DAO",
   "version": "0.1.1",
   "keywords": [
@@ -9,13 +9,13 @@
   "scripts": {
     "test": "mocha --recursive"
   },
-  "homepage": "https://github.com/dbalakov/nodejs-dao",
+  "homepage": "https://github.com/dbalakov/zatanna",
   "repository": {
     "type": "git",
-    "url": "git@github.com:dbalakov/nodejs-dao.git"
+    "url": "git@github.com:dbalakov/zatanna.git"
   },
   "bugs": {
-    "url": "https://github.com/dbalakov/nodejs-dao/issues"
+    "url": "https://github.com/dbalakov/zatanna/issues"
   },
   "license": "MIT",
   "author": {
@@ -34,6 +34,6 @@
     "require-directory": "~2.0.0"
   },
   "main": "./index.js",
-  "_id": "nodejs-dao@2.7.1",
+  "_id": "zatanna@0.1.1",
   "readme": "DAO"
 }
