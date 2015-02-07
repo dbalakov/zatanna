@@ -18,13 +18,13 @@ var organizations_injection = {
     },
     methods : {
         selectWithMembers : function(conditions) {
-            return this.select({
+            return this.select(conditions, {
                 fields : [
                     'id',
                     'name',
                     new DAO.Field.Array('SELECT "Members"."id", "Members"."name" FROM "Members" WHERE "Members"."organization" = "Organizations"."id" ORDER BY "Members"."id"', 'members')
                 ]
-            }, conditions);
+            });
         }
     }
 };

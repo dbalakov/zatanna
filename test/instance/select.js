@@ -60,7 +60,7 @@ describe('Instance_Select', function() {
     it('Select with custom fields', function(done) {
         var dao     = new DAO(config.db.main);
         var members = new Instance(dao, members_description);
-        members.select({ fields : [ 'id', 'organization', 'name', new DAO.Field("'2015-11-11'::timestamp", 'date') ] }).then(function(result) {
+        members.select(null, { fields : [ 'id', 'organization', 'name', new DAO.Field("'2015-11-11'::timestamp", 'date') ] }).then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
             assert.deepEqual(result, [
                 { id : 1, organization : 1, name : 'Ozwell E. Spencer', date : new Date(2015, 10, 11) },
@@ -84,7 +84,7 @@ describe('Instance_Select', function() {
             ]
         }
 
-        members.select(description, { id : 1 }).then(function(result) {
+        members.select({ id : 1 }, description).then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
             assert.deepEqual(result, [
                 {
@@ -113,7 +113,7 @@ describe('Instance_Select', function() {
             ]
         };
 
-        members.select(description, { organization : 1 }).then(function(result) {
+        members.select({ organization : 1 }, description).then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
             assert.deepEqual(result, [
                 { name : 'Ozwell E. Spencer', date : new Date(2015, 10, 11), organization: { name : "Umbrella" } },
@@ -138,7 +138,7 @@ describe('Instance_Select', function() {
             ]
         };
 
-        members.select(description).then(function(result) {
+        members.select(null, description).then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
             assert.deepEqual(result, [
                 { id : 1, name : 'Ozwell E. Spencer', organization_id : 1, organization : 'Umbrella' },
@@ -155,7 +155,7 @@ describe('Instance_Select', function() {
         var dao         = new DAO(config.db.main);
         var members     = new Instance(dao, members_description);
 
-        members.select({ order : '"name"' }).then(function(result) {
+        members.select(null, { order : '"name"' }).then(function(result) {
             assert.deepEqual(result, [
                 { id : 2, organization : 1, name : 'Albert Wesker' },
                 { id : 4, organization : 2, name : 'Miles Bennett Dyson' },
@@ -171,11 +171,22 @@ describe('Instance_Select', function() {
         var dao         = new DAO(config.db.main);
         var members     = new Instance(dao, members_description);
 
-        members.select({ order : '"name"', limit : 2, offset : 1 }).then(function(result) {
+        members.select(null, { order : '"name"', limit : 2, offset : 1 }).then(function(result) {
             assert.deepEqual(result, [
                 { id : 4, organization : 2, name : 'Miles Bennett Dyson' },
                 { id : 1, organization : 1, name : 'Ozwell E. Spencer' }
             ], 'See valid result');
+
+            done();
+        }).catch(done);
+    });
+
+    it('selectOne', function(done) {
+        var dao         = new DAO(config.db.main);
+        var members     = new Instance(dao, members_description);
+
+        members.selectOne(null, { order : '"name"', limit : 2, offset : 1 }).then(function(result) {
+            assert.deepEqual(result, { id : 4, organization : 2, name : 'Miles Bennett Dyson' }, 'See valid result');
 
             done();
         }).catch(done);

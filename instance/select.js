@@ -2,7 +2,7 @@ var conditions = require('./conditions');
 var DAO        = require('..');
 
 module.exports = function(Instance) {
-    Instance.prototype.select = function(description, where) {
+    Instance.prototype._select = function(type, where, description) {
         var _fields = description && description.fields ? description.fields : this.description.fields;
         var fields = [];
         for (var i = 0; i < _fields.length; i++) {
@@ -29,7 +29,15 @@ module.exports = function(Instance) {
         var limitPart  = description && description.limit ? (' LIMIT $' + params.push(description.limit)) : '';
         var offsetPart = description && description.offset ? (' OFFSET $' + params.push(description.offset)) : '';
 
-        return this.dao.select('SELECT ' + fieldsPart + ' FROM ' + fromPart + ' ' + wherePart + orderPart + limitPart + offsetPart, params);
+        return this.dao[type]('SELECT ' + fieldsPart + ' FROM ' + fromPart + ' ' + wherePart + orderPart + limitPart + offsetPart, params);
+    };
+
+    Instance.prototype.select = function(where, description) {
+        return this._select('select', where, description);
+    };
+
+    Instance.prototype.selectOne = function(where, description) {
+        return this._select('selectOne', where, description);
     };
 
     Instance.prototype.createFieldsForSelect = function(fields, params) {
