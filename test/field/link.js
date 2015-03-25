@@ -17,4 +17,12 @@ describe('Field', function() {
 
         assert.equal(field.toSQL(), '(SELECT row_to_json(row) FROM (SELECT "Organizations"."id", "Organizations"."name" FROM "Organizations") AS row) as "organization"', 'See valid result');
     });
+
+    it('toSQL with params', function() {
+        var field = new LinkField(function (params) {
+            return 'SELECT "Organizations"."id", "Organizations"."name" FROM "Organizations" WHERE "Organizations"."type" = $' + params.length + ';'
+        }, 'organization');
+
+        assert.equal(field.toSQL(["LTD"]), '(SELECT row_to_json(row) FROM (SELECT "Organizations"."id", "Organizations"."name" FROM "Organizations" WHERE "Organizations"."type" = $1;) AS row) as "organization"', 'See valid result');
+    });
 });

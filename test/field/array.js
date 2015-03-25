@@ -17,4 +17,12 @@ describe('Field', function() {
 
         assert.equal(field.toSQL(), '(SELECT array_to_json(array_agg(row)) FROM (SELECT "Members"."id", "Members"."name" FROM "Members" WHERE Members."id" = "Organization"."member") AS row) as "members"', 'See valid result');
     });
+
+    it('toSQL with params', function() {
+        var field = new ArrayField(function (params) {
+            return 'SELECT "Members"."id", "Members"."name" FROM "Members" WHERE Members."id" = $' + params.length
+        }, 'members');
+
+        assert.equal(field.toSQL(["someUUID"]), '(SELECT array_to_json(array_agg(row)) FROM (SELECT "Members"."id", "Members"."name" FROM "Members" WHERE Members."id" = $1) AS row) as "members"', 'See valid result');
+    });
 });
