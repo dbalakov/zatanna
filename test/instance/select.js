@@ -191,4 +191,18 @@ describe('Instance_Select', function() {
             done();
         }).catch(done);
     });
+
+    it('select with group', function (done) {
+        var dao         = new DAO(config.db.main);
+        var members     = new Instance(dao, members_description);
+
+        members.select(null, { fields: ['organization'], group : '"organization"'}).then(function(result) {
+            assert.deepEqual(result, [
+                { organization : 1 },
+                { organization : 2 }
+            ]);
+
+            done();
+        }).catch(done);
+    })
 });

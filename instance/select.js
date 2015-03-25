@@ -25,11 +25,12 @@ module.exports = function(Instance) {
         var fieldsPart = this.createFieldsForSelect(fields, params);
         var fromPart   = from.join(' ');
         var wherePart  = conditions.where(this.conditions, where, params);
+        var groupPart  = description && description.group ? (' GROUP BY ' + description.group) : '';
         var orderPart  = description && description.order ? (' ORDER BY ' + description.order) : '';
         var limitPart  = description && description.limit ? (' LIMIT $' + params.push(description.limit)) : '';
         var offsetPart = description && description.offset ? (' OFFSET $' + params.push(description.offset)) : '';
 
-        return this.dao[type]('SELECT ' + fieldsPart + ' FROM ' + fromPart + ' ' + wherePart + orderPart + limitPart + offsetPart, params);
+        return this.dao[type]('SELECT ' + fieldsPart + ' FROM ' + fromPart + ' ' + wherePart + groupPart + orderPart + limitPart + offsetPart, params);
     };
 
     Instance.prototype.select = function(where, description) {
