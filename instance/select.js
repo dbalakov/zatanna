@@ -14,13 +14,12 @@ module.exports = function(Instance) {
         }
 
         var from = [ '"' + this.description.table + '"' ];
+        var params = [];
         if (description && description.join) {
             for (var i = 0; i < description.join.length; i++) {
-                from.push(description.join[i].toSQL());
+                from.push(description.join[i].toSQL(params));
             }
         }
-
-        var params = [];
 
         var fieldsPart = this.createFieldsForSelect(fields, params);
         var fromPart   = from.join(' ');
