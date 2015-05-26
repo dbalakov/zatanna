@@ -10,6 +10,9 @@ var description = {
     },
     name : function(value, params) {
         return '"name"=$' + params.push(value);
+    },
+    empty : function() {
+        return;
     }
 };
 
@@ -20,6 +23,14 @@ describe('Conditions', function() {
 
         assert.equal(where, '');
         assert.deepEqual(params, [ 1 ]);
+    });
+
+    it('where with empty condition', function() {
+        var params = [ 1 ];
+        var where = conditions.where(description, { id : null, name : 'Weyland-Yutani Corporation', empty : 123 }, params);
+
+        assert.equal(where, ' WHERE "id"=$2 AND "name"=$3', 'See valid where');
+        assert.deepEqual(params, [ 1, null, 'Weyland-Yutani Corporation' ]);
     });
 
     it('where without conditions', function() {

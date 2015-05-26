@@ -5,6 +5,6 @@
         "user": "postgres",
         "password": "lfk11kos",
         "host": "localhost",
-        "database": "dao_test"
+        "database": "zatanna"
     }
 }
