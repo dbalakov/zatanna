@@ -50,8 +50,7 @@ describe('DAO', function() {
         var dao = new DAO(config.db.main);
 
         dao.createClient().catch(function(error) { done(new Error(error)); }).then(function(client) {
-            assert.equal(dao.client, client, 'See valid client');
-            assert.ok(dao.client.readyForQuery, 'Client is ready for query');
+            assert.ok(client.readyForQuery, 'Client is ready for query');
 
             client.end();
 
@@ -59,17 +58,11 @@ describe('DAO', function() {
         });
     });
 
-    it('end: see valid executing without client', function() {
-        var dao = new DAO(config.db.main);
-        assert.doesNotThrow(function() { dao.end(); }, null, "end doesn't throw error");
-    });
-
     it('end: see valid executing with client', function() {
         var dao = new DAO(config.db.main);
         var end = sinon.spy();
-        dao.client = { end : end }
 
-        dao.end();
+        dao.end({ end : end });
 
         assert(end.calledOnce, 'client.end is called');
         assert.isUndefined(dao.client, 'Client is undefined');

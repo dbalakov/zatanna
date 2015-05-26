@@ -20,29 +20,24 @@ DAO.prototype.createClient = function() {
             if (error) {
                 return reject(error);
             }
-            that.client = client;
             resolve(client);
         });
     });
 };
 
-DAO.prototype.end = function() {
-    if (!this.client) {
-        return;
-    }
-    this.client.end();
-    delete this.client;
+DAO.prototype.end = function(client) {
+    client.end();
 };
 
 DAO.prototype.select = function(sql, params) {
     var that = this;
-    return that.createClient().catch(function(error) { that.end(); throw error;}).then(function() {
+    return that.createClient().catch(function(error) { throw error;}).then(function(client) {
         return new Promise(function(resolve, reject) {
             var result = [];
-            var query  = that.client.query(sql, params);
+            var query  = client.query(sql, params);
             query.on('row', function(row) { result.push(row); });
-            query.on('error', function(error) { that.end(); reject(error); });
-            query.on('end', function() { that.end(); resolve(result); });
+            query.on('error', function(error) { that.end(client); reject(error); });
+            query.on('end', function() { that.end(client); resolve(result); });
         });
     });
 };
@@ -57,23 +52,23 @@ DAO.prototype.executeSql = function(sql, params) {
 
 DAO.prototype.execute = function() {
     var that = this;
-    return that.createClient().catch(function(error) { that.end(); throw error;}).then(function() {
+    return that.createClient().catch(function(error) { throw error;}).then(function(client) {
         return new Promise(function(resolve, reject) {
             var result = [];
             if (that.queue.length == 0) {
                 return resolve(result);
             }
             function executeSql(query) {
-                that.client.query(query.sql, query.params, function(error, res) {
+                client.query(query.sql, query.params, function(error, res) {
                     if(error) {
                         that.queue = [];
-                        that.end();
+                        that.end(client);
                         return reject(error);
                     }
 
                     result.push(res);
                     if (that.queue.length == 0) {
-                        that.end();
+                        that.end(client);
                         return resolve(result);
                     }
                     executeSql(that.queue.shift());
