@@ -7,6 +7,7 @@ function Instance(dao, description) {
 }
 
 require("./insert")(Instance);
+require("./insertAll")(Instance);
 require("./update")(Instance);
 require("./delete")(Instance);
 require("./select")(Instance);
