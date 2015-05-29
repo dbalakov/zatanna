@@ -4,7 +4,7 @@ var assert    = require("chai").assert;
 
 var ArrayField = require(cwd + '/field/array');
 
-describe('Field', function() {
+describe('ArrayField', function() {
     it('Constructor', function() {
         var field = new ArrayField('SELECT "Organizations"."id", "Organizations"."name" FROM "Organizations"', 'organization');
 
