@@ -2,10 +2,12 @@ var Promise = require("bluebird");
 var pg      = require("pg");
 
 var Factory = require("./instance/factory");
+var Logger  = require("./logger");
 
 function DAO(config, path) {
     this.config = config;
     this.queue  = [];
+    this.logger = new Logger();
 
     if (path) {
         Factory.get(path).createInstances(this);
@@ -18,8 +20,10 @@ DAO.prototype.createClient = function() {
         var client = new pg.Client(that.config);
         client.connect(function(error) {
             if (error) {
+                that.logger.log(4, [ error ]);
                 return reject(error);
             }
+            that.logger.log(0, [ 'Connected' ]);
             resolve(client);
         });
     });
@@ -27,6 +31,7 @@ DAO.prototype.createClient = function() {
 
 DAO.prototype.end = function(client) {
     client.end();
+    this.logger.log(0, [ 'Disconnected' ]);
 };
 
 DAO.prototype.select = function(sql, params) {
@@ -36,8 +41,16 @@ DAO.prototype.select = function(sql, params) {
             var result = [];
             var query  = client.query(sql, params);
             query.on('row', function(row) { result.push(row); });
-            query.on('error', function(error) { that.end(client); reject(error); });
-            query.on('end', function() { that.end(client); resolve(result); });
+            query.on('error', function(error) {
+                that.end(client);
+                that.logger.log(4, [ { sql : sql, params : params, error : error } ]);
+                reject(error);
+            });
+            query.on('end', function() {
+                that.end(client);
+                that.logger.log(0, [ { sql : sql, params : params, result : result } ]);
+                resolve(result);
+            });
         });
     });
 };
@@ -63,8 +76,10 @@ DAO.prototype.execute = function() {
                     if(error) {
                         that.queue = [];
                         that.end(client);
+                        that.logger.log(4, [ { sql : query.sql, params : query.params, error : error } ]);
                         return reject(error);
                     }
+                    that.logger.log(0, [ { sql : query.sql, params : query.params, result : res } ]);
 
                     result.push(res);
                     if (that.queue.length == 0) {

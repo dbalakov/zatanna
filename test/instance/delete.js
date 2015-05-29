@@ -1,7 +1,6 @@
 var cwd = process.cwd();
 
 var assert = require("chai").assert;
-var sinon  = require("sinon");
 
 var config   = require(cwd + '/test/env/config');
 var DAO      = require(cwd);
