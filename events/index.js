@@ -30,6 +30,7 @@ module.exports = function(obj) {
 };
 
 function cloneArgs(args) {
+    if (!args) { return null; }
     var result = { length : args.length };
     for (var i = 0; i < args.length; i++) {
         result[i] = args[i];

@@ -130,33 +130,49 @@ describe('DAO', function() {
     });
 
     it('execute: invalid query', function(done) {
+        var beforeExecute = sinon.spy();
+        var afterExecute = sinon.spy();
         var dao = new DAO(config.db.main);
+
+        dao.on(DAO.EVENTS.BEFORE_EXECUTE, beforeExecute);
+        dao.on(DAO.EVENTS.AFTER_EXECUTE, afterExecute);
         dao.logger.set(createLogger(), 0);
 
         dao.executeSql('INVALID QUERY');
         dao.execute().then(function() { done(new Error('Called resolve')); }).catch(function() {
             assert(dao.logger.logger.error.calledOnce, 'Logger.error was called');
+            assert(beforeExecute.calledOnce, 'Before execute called');
+            assert(afterExecute.notCalled, 'After execute not called');
             done();
         });
     });
 
     it('execute', function(done) {
+        var beforeExecute = sinon.spy();
+        var afterExecute = sinon.spy();
         var dao = new DAO(config.db.main);
+
+        dao.on(DAO.EVENTS.BEFORE_EXECUTE, beforeExecute);
+        dao.on(DAO.EVENTS.AFTER_EXECUTE, afterExecute);
         dao.logger.set(createLogger(), 0);
 
         dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
         dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
         dao.executeSql('INSERT INTO "Organizations" VALUES ($1, $2);', [ 1, 'Umbrella' ]);
-        dao.execute().catch(function(error) { done(error); }).then(function(result) {
+        dao.execute().then(function(result) {
             assert.lengthOf(result, 3, 'See valid result length');
             assert.equal(dao.logger.logger.log.callCount, 5, 'Logger.log was called for each query');
+
+            assert(beforeExecute.calledOnce, 'Before execute called');
+            assert(afterExecute.calledOnce, 'After execute called');
+            assert(afterExecute.calledWith(result), 'After execute called with valid arguments');
 
             return dao.select('SELECT "id", "name" FROM "Organizations"');
         }).then(function(result) {
             assert.deepEqual(result, [ { id : 1, name : 'Umbrella' } ]);
 
             done();
-        });
+        }).catch(function(error) { done(error); });
     });
 });
 
