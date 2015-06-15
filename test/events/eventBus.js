@@ -44,7 +44,7 @@ describe('EventBus', function() {
         assert.deepEqual(obj.handlers, { event : [ 0, 1, 1, 3, 5, 8, 13 ] }, 'See valid handlers');
     });
 
-    it('dispatchEvent', function() {
+    it('dispatchEvent', function(done) {
         var h1 = sinon.spy();
         var h2 = sinon.spy();
         var obj = {};
@@ -53,11 +53,13 @@ describe('EventBus', function() {
         obj.on('event', h1);
         obj.on('event', h2);
 
-        obj.dispatchEvent('event', [ 1, 2 ]);
+        obj.dispatchEvent('event', [ 1, 2 ]).then(function() {
+            assert(h1.calledOnce, 'Handler was called');
+            assert(h1.calledWith(1, 2), 'Handler was called with valid arguments');
+            assert(h2.calledOnce, 'Another handler was called');
+            assert(h2.calledWith(1, 2), 'Another Handler was called with valid arguments');
 
-        assert(h1.calledOnce, 'Handler was called');
-        assert(h1.calledWith(1, 2), 'Handler was called with valid arguments');
-        assert(h2.calledOnce, 'Another handler was called');
-        assert(h2.calledWith(1, 2), 'Another Handler was called with valid arguments');
+            done();
+        });
     });
 });

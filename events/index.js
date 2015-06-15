@@ -17,7 +17,22 @@ module.exports = function(obj) {
     };
 
     obj.dispatchEvent = function(type, args) {
-        if (!obj.handlers[type]) { return; }
-        obj.handlers[type].forEach(function(handler) { handler.apply(obj, args); });
+        return new Promise(function(resolve, reject) {
+            if (!obj.handlers[type]) { return resolve(); }
+            var handlers = obj.handlers[type].slice();
+
+            (function callHandler() {
+                if (handlers.length == 0) { return resolve(); }
+                Promise.resolve(handlers.shift().apply(obj, cloneArgs(args))).then(callHandler).catch(reject);
+            })();
+        });
     };
 };
+
+function cloneArgs(args) {
+    var result = { length : args.length };
+    for (var i = 0; i < args.length; i++) {
+        result[i] = args[i];
+    }
+    return result;
+}
