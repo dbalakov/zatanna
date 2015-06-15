@@ -5,6 +5,8 @@ module.exports = {
         }
         var sql = [];
         for (var field in conditions) {
+            if (typeof conditions[field] === 'undefined') { continue; }
+
             if (description[field]) {
                 var value = description[field](conditions[field], params);
                 if (value != null && value != undefined) {
