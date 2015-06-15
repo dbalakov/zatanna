@@ -53,9 +53,11 @@ describe('EventBus', function() {
         obj.on('event', h1);
         obj.on('event', h2);
 
-        obj.dispatchEvent('event');
+        obj.dispatchEvent('event', [ 1, 2 ]);
 
         assert(h1.calledOnce, 'Handler was called');
+        assert(h1.calledWith(1, 2), 'Handler was called with valid arguments');
         assert(h2.calledOnce, 'Another handler was called');
+        assert(h2.calledWith(1, 2), 'Another Handler was called with valid arguments');
     });
 });

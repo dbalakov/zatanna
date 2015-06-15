@@ -16,8 +16,8 @@ module.exports = function(obj) {
         handlers.splice(index, 1);
     };
 
-    obj.dispatchEvent = function(type) {
+    obj.dispatchEvent = function(type, args) {
         if (!obj.handlers[type]) { return; }
-        obj.handlers[type].forEach(function(handler) { handler(); });
+        obj.handlers[type].forEach(function(handler) { handler.apply(obj, args); });
     };
 };
