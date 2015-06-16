@@ -70,7 +70,7 @@ DAO.prototype.execute = function() {
     var that = this;
     return that.createClient().catch(function(error) { throw error;}).then(function(client) {
         return that.dispatchEvent(DAO.EVENTS.BEFORE_EXECUTE).then(function() {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function(resolve, reject) { //TODO Really?
                 var result = [];
                 if (that.queue.length == 0) {
                     return resolve(result);
