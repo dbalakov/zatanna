@@ -4,7 +4,7 @@ var assert    = require("chai").assert;
 
 var LinkField = require(cwd + '/field/link');
 
-describe('Field', function() {
+describe('LinkField', function() {
     it('Constructor', function() {
         var field = new LinkField('SELECT "Organizations"."id", "Organizations"."name" FROM "Organizations"', 'organization');
 
