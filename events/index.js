@@ -19,14 +19,10 @@ module.exports = function(obj) {
     };
 
     obj.dispatchEvent = function(type, args) {
-        return new Promise(function(resolve, reject) {
-            if (!obj.handlers[type]) { return resolve(); }
-            var handlers = obj.handlers[type].slice();
-
-            (function callHandler() {
-                if (handlers.length == 0) { return resolve(); }
-                Promise.resolve(handlers.shift().apply(obj, cloneArgs(args))).then(callHandler).catch(reject);
-            })();
+        var handlers = (obj.handlers[type] || []).slice();
+        return Promise.resolve().then(function callHandler() {
+            var handler = handlers.shift();
+            return handler ? Promise.resolve(handler.apply(obj, cloneArgs(args))).then(callHandler) : null;
         });
     };
 };
