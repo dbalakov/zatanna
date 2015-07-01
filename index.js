@@ -29,29 +29,27 @@ DAO.prototype.createClient = function() {
             that.logger.log(0, [ 'Connected' ]);
             resolve(client);
         });
+    }).disposer(function (client) {
+        client.end();
+        that.logger.log(0, [ 'Disconnected' ]);
     });
-};
-
-DAO.prototype.end = function(client) {
-    client.end();
-    this.logger.log(0, [ 'Disconnected' ]);
 };
 
 DAO.prototype.select = function(sql, params) {
     var that = this;
-    return that.createClient().catch(function(error) { throw error;}).then(function(client) {
-        return new Promise(function(resolve, reject) {
+    return Promise.using(that.createClient(), function(client) {
+        return new Promise(function (resolve, reject) {
             var result = [];
-            var query  = client.query(sql, params);
-            query.on('row', function(row) { result.push(row); });
-            query.on('error', function(error) {
-                that.end(client);
-                that.logger.log(4, [ { sql : sql, params : params, error : error } ]);
+            var query = client.query(sql, params);
+            query.on('row', function (row) {
+                result.push(row);
+            });
+            query.on('error', function (error) {
+                that.logger.log(4, [{sql: sql, params: params, error: error}]);
                 reject(error);
             });
-            query.on('end', function() {
-                that.end(client);
-                that.logger.log(0, [ { sql : sql, params : params, result : result } ]);
+            query.on('end', function () {
+                that.logger.log(0, [{sql: sql, params: params, result: result}]);
                 resolve(result);
             });
         });
@@ -68,34 +66,34 @@ DAO.prototype.executeSql = function(sql, params) {
 
 DAO.prototype.execute = function() {
     var that = this;
-    return that.createClient().catch(function(error) { throw error;}).then(function(client) {
+    return Promise.using(that.createClient(), function(client) {
         return that.dispatchEvent(DAO.EVENTS.BEFORE_EXECUTE).then(function() {
-            return new Promise(function(resolve, reject) { //TODO Really?
+            return new Promise(function (resolve, reject) { //TODO Really?
                 var result = [];
                 if (that.queue.length == 0) {
                     return resolve(result);
                 }
                 function executeSql(query) {
-                    client.query(query.sql, query.params, function(error, res) {
-                        if(error) {
+                    client.query(query.sql, query.params, function (error, res) {
+                        if (error) {
                             that.queue = [];
-                            that.end(client);
-                            that.logger.log(4, [ { sql : query.sql, params : query.params, error : error } ]);
+                            that.logger.log(4, [{sql: query.sql, params: query.params, error: error}]);
                             return reject(error);
                         }
-                        that.logger.log(0, [ { sql : query.sql, params : query.params, result : res } ]);
+                        that.logger.log(0, [{sql: query.sql, params: query.params, result: res}]);
 
                         result.push(res);
                         if (that.queue.length == 0) {
-                            that.end(client);
-                            return that.dispatchEvent(DAO.EVENTS.AFTER_EXECUTE, [ result ]).then(function() { resolve(result) });
+                            return resolve(result);
                         }
                         executeSql(that.queue.shift());
                     });
                 }
                 executeSql(that.queue.shift());
             });
-        });
+        })
+    }).then(function (result) {
+        return that.dispatchEvent(DAO.EVENTS.AFTER_EXECUTE, [ result ]).then(function() { return result });
     });
 };
 
