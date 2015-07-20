@@ -61,11 +61,16 @@ describe('Instance_Select', function() {
         var members = new Instance(dao, members_description);
         members.select(null, { fields : [ 'id', 'organization', 'name', new DAO.Field("'2015-11-11'::timestamp", 'date') ] }).then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
-            assert.deepEqual(result, [
-                { id : 1, organization : 1, name : 'Ozwell E. Spencer', date : new Date(2015, 10, 11) },
-                { id : 2, organization : 1, name : 'Albert Wesker', date : new Date(2015, 10, 11) },
-                { id : 3, organization : 1, name : 'Sergei Vladimir', date : new Date(2015, 10, 11) },
-                { id : 4, organization : 2, name : 'Miles Bennett Dyson', date : new Date(2015, 10, 11) }
+
+            assert.deepEqual(result.map(function(row) {
+                row.date = row.date.toISOString();
+
+                return row;
+            }), [
+                { id : 1, organization : 1, name : 'Ozwell E. Spencer', date : '2015-11-11T00:00:00.000Z' },
+                { id : 2, organization : 1, name : 'Albert Wesker', date : '2015-11-11T00:00:00.000Z' },
+                { id : 3, organization : 1, name : 'Sergei Vladimir', date : '2015-11-11T00:00:00.000Z' },
+                { id : 4, organization : 2, name : 'Miles Bennett Dyson', date : '2015-11-11T00:00:00.000Z' }
             ], 'See valid result');
 
             done();
@@ -114,10 +119,14 @@ describe('Instance_Select', function() {
 
         members.select({ organization : 1 }, description).then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
-            assert.deepEqual(result, [
-                { name : 'Ozwell E. Spencer', date : new Date(2015, 10, 11), organization: { name : "Umbrella" } },
-                { name : 'Albert Wesker', date : new Date(2015, 10, 11), organization: { name : "Umbrella" } },
-                { name : 'Sergei Vladimir', date : new Date(2015, 10, 11), organization: { name : "Umbrella" } }
+            assert.deepEqual(result.map(function(row) {
+                row.date = row.date.toISOString();
+
+                return row;
+            }), [
+                { name : 'Ozwell E. Spencer', date : '2015-11-11T00:00:00.000Z', organization: { name : "Umbrella" } },
+                { name : 'Albert Wesker', date : '2015-11-11T00:00:00.000Z', organization: { name : "Umbrella" } },
+                { name : 'Sergei Vladimir', date : '2015-11-11T00:00:00.000Z', organization: { name : "Umbrella" } }
             ], 'See valid result');
 
             done();
