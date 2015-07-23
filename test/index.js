@@ -1,5 +1,7 @@
 var cwd = process.cwd();
 
+var Promise = require("bluebird");
+
 var assert = require("chai").assert;
 var sinon  = require("sinon");
 
@@ -39,13 +41,13 @@ describe('DAO', function() {
         assert.isDefined(dao.organizations.selectWithMembers, 'See condition');
     });
 
-    it('createClient: invalid config', function(done) {
+    it('createClient: invalid config', function (done) {
         var dao = new DAO(invalid_config);
         dao.logger.set(createLogger(), 0);
-
-        dao.createClient().then(function() { done(new Error('Called resolve')); }).catch(function(error) {
+        Promise.using(dao.createClient(), function () {
+            done(new Error('Called resolve'));
+        }).catch(function (error) {
             assert(dao.logger.logger.error.calledOnce, 'logger.error was called');
-
             done();
         });
     });
@@ -53,26 +55,19 @@ describe('DAO', function() {
     it('createClient: valid config', function(done) {
         var dao = new DAO(config.db.main);
         dao.logger.set(createLogger(), 0);
-
-        dao.createClient().catch(function(error) { done(new Error(error)); }).then(function(client) {
+        var clientSpy;
+        Promise.using(dao.createClient(), function (client) {
+            clientSpy = sinon.spy(client, "end");
             assert(client.readyForQuery, 'Client is ready for query');
             assert(dao.logger.logger.log.calledWith('Connected'), 'Logger.log was called with "Connected" argument');
-
-            client.end();
-
+        }).then(function () {
+            assert(dao.logger.logger.log.calledWith('Disconnected'), 'Logger.log was called with "Disconnected" argument');
+            assert(clientSpy.calledOnce, 'client.end was called');
             done();
-        });
-    });
+        }).catch(function (error) {
+            done(error);
+        })
 
-    it('end: see valid executing with client', function() {
-        var dao = new DAO(config.db.main);
-        dao.logger.set(createLogger(), 0);
-        var end = sinon.spy();
-
-        dao.end({ end : end });
-
-        assert(dao.logger.logger.log.calledWith('Disconnected'), 'Logger.log was called with "Disconnected" argument');
-        assert(end.calledOnce, 'client.end was called');
     });
 
     it('select: invalid config', function(done) {
