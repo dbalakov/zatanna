@@ -31,4 +31,14 @@ describe('Join', function() {
 
         assert.equal(join.toSQL(), 'RIGHT JOIN "Organizations" ON "Organizations"."id" = "Members"."organization"', 'See valid on');
     });
+
+    it('Inner with an alias', function() {
+        var join = new Join('Organizations', '"Organizations"."id" = "Members"."organization"', 'o');
+
+        assert.equal(join.table, 'Organizations', 'See valid table');
+        assert.equal(join.on, '"Organizations"."id" = "Members"."organization"', 'See valid on');
+        assert.equal(join.alias, 'o', 'See valid alias');
+
+        assert.equal(join.toSQL(), 'INNER JOIN "Organizations" o ON "Organizations"."id" = "Members"."organization"', 'See valid on');
+    });
 });
