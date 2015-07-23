@@ -13,6 +13,7 @@ describe('DAO', function() {
     afterEach(function(done) {
         var dao = new DAO(config.db.main);
         dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('DROP TABLE IF EXISTS "Dates";');
 
         dao.execute().then(function() { done(); }).catch(done);
     });
@@ -173,6 +174,22 @@ describe('DAO', function() {
 
             done();
         }).catch(function(error) { done(error); });
+    });
+
+    it('parses timestamps without time zone correctly', function(done) {
+        var dao = new DAO(config.db.main);
+        var date = '2015-07-20T10:00:00.000Z';
+
+        dao.executeSql('DROP TABLE IF EXISTS "Dates";');
+        dao.executeSql('CREATE TABLE "Dates" (date timestamp without time zone);');
+        dao.executeSql('INSERT INTO "Dates" VALUES ($1);', [date]);
+
+        dao.execute().catch(done).then(function(result) {
+            return dao.selectOne('SELECT "date" FROM "Dates"');
+        }).then(function(result) {
+            assert.equal(result.date.toISOString(), date);
+            done();
+        });
     });
 });
 
