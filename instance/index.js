@@ -11,5 +11,6 @@ require("./insertAll")(Instance);
 require("./update")(Instance);
 require("./delete")(Instance);
 require("./select")(Instance);
+require("./count")(Instance);
 
 module.exports = Instance;
