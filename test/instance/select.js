@@ -6,8 +6,8 @@ var config   = require(cwd + '/test/env/config');
 var DAO      = require(cwd);
 var Instance = require(cwd + '/instance');
 
-var organizations_description = { table  : 'Organizations', fields : [ 'id', 'name' ] };
-var members_description       = { table  : 'Members', fields : [ 'id', 'organization', 'name' ] };
+var organizations_description = { table : 'Organizations', fields : [ 'id', 'name' ] };
+var members_description       = { table : 'Members', fields : [ 'id', 'organization', 'name' ] };
 
 describe('Instance_Select', function() {
     beforeEach(function(done) {
