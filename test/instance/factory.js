@@ -30,37 +30,6 @@ var organizations_injection = {
 };
 
 describe('Factory', function() {
-    beforeEach(function(done) {
-        var dao           = new DAO(config.db.main);
-        var organizations = new Instance(dao, organizations_description);
-        var members       = new Instance(dao, members_description);
-
-        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
-        dao.executeSql('DROP TABLE IF EXISTS "Members";');
-
-        dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
-        dao.executeSql('CREATE TABLE "Members" (id smallint, organization smallint, name text);');
-
-        organizations.insert({ id : 1, name : 'Umbrella' });
-        organizations.insert({ id : 2, name : 'Cyberdyne Systems' });
-
-        members.insert({ id : 1, organization : 1, name : 'Ozwell E. Spencer' });
-        members.insert({ id : 2, organization : 1, name : 'Albert Wesker' });
-        members.insert({ id : 3, organization : 1, name : 'Sergei Vladimir' });
-        members.insert({ id : 4, organization : 2, name : 'Miles Bennett Dyson' });
-
-        dao.execute().then(function() { done(); }).catch(done);
-    });
-
-    after(function(done) {
-        var dao = new DAO(config.db.main);
-
-        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
-        dao.executeSql('DROP TABLE IF EXISTS "Members";');
-
-        dao.execute().then(function() { done(); }).catch(done);
-    });
-
     it('constructor', function() {
         var factory          = new Factory(cwd + '/test/env/models');
 
@@ -115,5 +84,36 @@ describe('Factory', function() {
 
         assert.isDefined(dao.organizations.conditions.members, 'See condition');
         assert.isDefined(dao.organizations.selectWithMembers, 'See condition');
+    });
+
+    beforeEach(function(done) {
+        var dao           = new DAO(config.db.main);
+        var organizations = new Instance(dao, organizations_description);
+        var members       = new Instance(dao, members_description);
+
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('DROP TABLE IF EXISTS "Members";');
+
+        dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
+        dao.executeSql('CREATE TABLE "Members" (id smallint, organization smallint, name text);');
+
+        organizations.insert({ id : 1, name : 'Umbrella' });
+        organizations.insert({ id : 2, name : 'Cyberdyne Systems' });
+
+        members.insert({ id : 1, organization : 1, name : 'Ozwell E. Spencer' });
+        members.insert({ id : 2, organization : 1, name : 'Albert Wesker' });
+        members.insert({ id : 3, organization : 1, name : 'Sergei Vladimir' });
+        members.insert({ id : 4, organization : 2, name : 'Miles Bennett Dyson' });
+
+        dao.execute().then(function() { done(); }).catch(done);
+    });
+
+    after(function(done) {
+        var dao = new DAO(config.db.main);
+
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('DROP TABLE IF EXISTS "Members";');
+
+        dao.execute().then(function() { done(); }).catch(done);
     });
 });

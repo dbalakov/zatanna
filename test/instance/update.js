@@ -9,21 +9,6 @@ var Instance = require(cwd + '/instance');
 var organizations_description = { table  : 'Organizations', fields : [ 'id', 'name' ] };
 
 describe('Instance_Update', function() {
-    beforeEach(function(done) {
-        var dao = new DAO(config.db.main);
-        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
-        dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
-
-        dao.execute().then(function() { done(); }).catch(done);
-    });
-
-    after(function(done) {
-        var dao = new DAO(config.db.main);
-        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
-
-        dao.execute().then(function() { done(); }).catch(done);
-    });
-
     it('Update', function(done) {
         var dao = new DAO(config.db.main);
         var instance = new Instance(dao, organizations_description);
@@ -55,5 +40,20 @@ describe('Instance_Update', function() {
 
                 done();
             }).catch(done);
+    });
+
+    beforeEach(function(done) {
+        var dao = new DAO(config.db.main);
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
+
+        dao.execute().then(function() { done(); }).catch(done);
+    });
+
+    after(function(done) {
+        var dao = new DAO(config.db.main);
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+
+        dao.execute().then(function() { done(); }).catch(done);
     });
 });

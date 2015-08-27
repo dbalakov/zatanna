@@ -12,14 +12,6 @@ var Logger = require(cwd + '/logger');
 var invalid_config = { "driver": "pg", "user": "postgres", "host": "invalid_host", "database": "dao_test" };
 
 describe('DAO', function() {
-    afterEach(function(done) {
-        var dao = new DAO(config.db.main);
-        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
-        dao.executeSql('DROP TABLE IF EXISTS "Dates";');
-
-        dao.execute().then(function() { done(); }).catch(done);
-    });
-
     it('Static', function() {
         assert.equal(DAO.Field, require(cwd + '/field'), 'See valid Field');
         assert.equal(DAO.Field.Link, require(cwd + '/field/link'), 'See valid Link field');
@@ -185,6 +177,14 @@ describe('DAO', function() {
             assert.equal(result.date.toISOString(), date);
             done();
         });
+    });
+
+    afterEach(function(done) {
+        var dao = new DAO(config.db.main);
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('DROP TABLE IF EXISTS "Dates";');
+
+        dao.execute().then(function() { done(); }).catch(done);
     });
 });
 
