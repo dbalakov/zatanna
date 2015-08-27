@@ -3,7 +3,7 @@ var DAO        = require('..');
 
 module.exports = function(Instance) {
     Instance.prototype._select = function(type, where, description) {
-        var _fields = description && description.fields ? description.fields : this.description.fields;
+        var _fields = description && description.fields ? description.fields : parseFields(this.description.fields);
         var fields = [];
         for (var i = 0; i < _fields.length; i++) {
             if (_fields[i].toSQL) {
@@ -48,3 +48,7 @@ module.exports = function(Instance) {
         return result.join(',');
     };
 };
+
+function parseFields(fields) {
+    return fields.map(function(field) { return typeof(field) === 'string' ? field : field.name });
+}

@@ -20,7 +20,7 @@ module.exports = {
     createEqual : function(conditions, description) {
         for (var i = 0; i < description.fields.length; i++) {
             (function(field) {
-                conditions[field] = function(value, params) {
+                conditions[field.name || field] = function(value, params) {
                     return '"' + description.table + '"."' + field + '"=$' + params.push(value);
                 }
             })(description.fields[i]);

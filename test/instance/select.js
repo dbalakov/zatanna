@@ -6,8 +6,9 @@ var config   = require(cwd + '/test/env/config');
 var DAO      = require(cwd);
 var Instance = require(cwd + '/instance');
 
+var age_field = { name : 'age', toSQL : function(value, params) { return '$' + params.push(value) + ' + 1'; } };
 var organizations_description = { table : 'Organizations', fields : [ 'id', 'name' ] };
-var members_description       = { table : 'Members', fields : [ 'id', 'organization', 'name' ] };
+var members_description       = { table : 'Members', fields : [ 'id', 'organization', 'name', age_field ] };
 
 describe('Instance_Select', function() {
     it('Select', function(done) {
@@ -16,10 +17,10 @@ describe('Instance_Select', function() {
         members.select().then(function(result) {
             result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
             assert.deepEqual(result, [
-                { id : 1, organization : 1, name : 'Ozwell E. Spencer' },
-                { id : 2, organization : 1, name : 'Albert Wesker' },
-                { id : 3, organization : 1, name : 'Sergei Vladimir' },
-                { id : 4, organization : 2, name : 'Miles Bennett Dyson' }
+                { id : 1, organization : 1, name : 'Ozwell E. Spencer', age : 33 },
+                { id : 2, organization : 1, name : 'Albert Wesker', age : 28 },
+                { id : 3, organization : 1, name : 'Sergei Vladimir', age : 36 },
+                { id : 4, organization : 2, name : 'Miles Bennett Dyson', age : 19 }
             ], 'See valid result');
 
             done();
@@ -135,10 +136,10 @@ describe('Instance_Select', function() {
 
         members.select(null, { order : '"name"' }).then(function(result) {
             assert.deepEqual(result, [
-                { id : 2, organization : 1, name : 'Albert Wesker' },
-                { id : 4, organization : 2, name : 'Miles Bennett Dyson' },
-                { id : 1, organization : 1, name : 'Ozwell E. Spencer' },
-                { id : 3, organization : 1, name : 'Sergei Vladimir' }
+                { id : 2, organization : 1, name : 'Albert Wesker', age : 28 },
+                { id : 4, organization : 2, name : 'Miles Bennett Dyson', age : 19 },
+                { id : 1, organization : 1, name : 'Ozwell E. Spencer', age : 33 },
+                { id : 3, organization : 1, name : 'Sergei Vladimir', age : 36 }
             ], 'See valid result');
 
             done();
@@ -151,8 +152,8 @@ describe('Instance_Select', function() {
 
         members.select(null, { order : '"name"', limit : 2, offset : 1 }).then(function(result) {
             assert.deepEqual(result, [
-                { id : 4, organization : 2, name : 'Miles Bennett Dyson' },
-                { id : 1, organization : 1, name : 'Ozwell E. Spencer' }
+                { id : 4, organization : 2, name : 'Miles Bennett Dyson', age : 19 },
+                { id : 1, organization : 1, name : 'Ozwell E. Spencer', age : 33 }
             ], 'See valid result');
 
             done();
@@ -164,7 +165,7 @@ describe('Instance_Select', function() {
         var members     = new Instance(dao, members_description);
 
         members.selectOne(null, { order : '"name"', limit : 2, offset : 1 }).then(function(result) {
-            assert.deepEqual(result, { id : 4, organization : 2, name : 'Miles Bennett Dyson' }, 'See valid result');
+            assert.deepEqual(result, { id : 4, organization : 2, name : 'Miles Bennett Dyson', age : 19 }, 'See valid result');
 
             done();
         }).catch(done);
@@ -193,15 +194,15 @@ describe('Instance_Select', function() {
         dao.executeSql('DROP TABLE IF EXISTS "Members";');
 
         dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
-        dao.executeSql('CREATE TABLE "Members" (id smallint, organization smallint, name text);');
+        dao.executeSql('CREATE TABLE "Members" (id smallint, organization smallint, name text, age smallint);');
 
         organizations.insert({ id : 1, name : 'Umbrella' });
         organizations.insert({ id : 2, name : 'Cyberdyne Systems' });
 
-        members.insert({ id : 1, organization : 1, name : 'Ozwell E. Spencer' });
-        members.insert({ id : 2, organization : 1, name : 'Albert Wesker' });
-        members.insert({ id : 3, organization : 1, name : 'Sergei Vladimir' });
-        members.insert({ id : 4, organization : 2, name : 'Miles Bennett Dyson' });
+        members.insert({ id : 1, organization : 1, name : 'Ozwell E. Spencer', age : 32 });
+        members.insert({ id : 2, organization : 1, name : 'Albert Wesker', age : 27 });
+        members.insert({ id : 3, organization : 1, name : 'Sergei Vladimir', age : 35 });
+        members.insert({ id : 4, organization : 2, name : 'Miles Bennett Dyson', age : 18 });
 
         dao.execute().then(function() { done(); }).catch(done);
     });

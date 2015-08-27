@@ -59,10 +59,12 @@ describe('Conditions', function() {
 
     it('createEqual', function() {
         var result = {};
-        conditions.createEqual(result, { table : 'Organizations', fields : [ 'id', 'name' ] });
+        var age_field = { name : 'age', toSQL : function(value, params) { return '$' + params.push(value) + ' + 1'; } };
+        conditions.createEqual(result, { table : 'Organizations', fields : [ 'id', 'name', age_field ] });
 
         assert.isDefined(result.id, 'See id equal condition');
         assert.isDefined(result.name, 'See name equal condition');
+        assert.isDefined(result.age, 'See age equal condition');
 
         var params = [ 42, 21 ];
         var sql = result.id(18, params);
