@@ -8,7 +8,10 @@ var Instance = require(cwd + '/instance');
 
 var age_field = { name : 'age', toSQL : function(value, params) { return '$' + params.push(value) + ' + 1'; } };
 var organizations_description = { table : 'Organizations', fields : [ 'id', 'name' ] };
-var members_description       = { table : 'Members', fields : [ 'id', 'organization', 'name', age_field ] };
+var members_description       = {
+    table : 'Members',
+    fields : [ 'id', 'organization', 'name', age_field ]
+};
 
 describe('Instance_Select', function() {
     it('Select', function(done) {
@@ -183,6 +186,17 @@ describe('Instance_Select', function() {
 
             done();
         }).catch(done);
+    });
+
+    it('select with pre-processing', function (done) {
+        var dao         = new DAO(config.db.main);
+        var members     = new Instance(dao, members_description);
+        members.selectDescription = { id_only : function(where, description, value) { if (value) { description.fields = [ 'id' ]; } } };
+
+        members.select(null, { order : 'id', id_only : true }).then(function(result) {
+            assert.deepEqual(result, [ { id : 1 }, { id : 2 }, { id : 3 }, { id : 4 } ]);
+            done();
+        }).catch(done);;
     });
 
     beforeEach(function(done) {

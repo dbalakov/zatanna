@@ -26,12 +26,17 @@ var organizations_injection = {
                 ]
             });
         }
+    },
+    select : {
+        id_only : function(where, description, value) {
+            if (value) { description.fields = [ 'id' ]; }
+        }
     }
 };
 
 describe('Factory', function() {
     it('constructor', function() {
-        var factory          = new Factory(cwd + '/test/env/models');
+        var factory = new Factory(cwd + '/test/env/models');
 
         assert.equal(factory.path, cwd + '/test/env/models', 'See valid path');
     });
@@ -55,6 +60,8 @@ describe('Factory', function() {
         assert.equal(organizations.description, organizations_description, 'See valid instance description');
         assert.isDefined(organizations.conditions.members, 'See condition from injection');
         assert.isDefined(organizations.selectWithMembers, 'See method from injection');
+        assert.isDefined(organizations.selectDescription, 'See selectDescription from injection');
+        assert.isDefined(organizations.selectDescription.id_only, 'See selectDescription from injection');
 
         organizations.selectWithMembers({ members : 2 }).then(function(result) {
             assert.deepEqual(result,
@@ -84,6 +91,8 @@ describe('Factory', function() {
 
         assert.isDefined(dao.organizations.conditions.members, 'See condition');
         assert.isDefined(dao.organizations.selectWithMembers, 'See condition');
+        assert.isDefined(dao.organizations.selectDescription, 'See select description');
+        assert.isDefined(dao.organizations.selectDescription.id_only, 'See select description members');
     });
 
     beforeEach(function(done) {

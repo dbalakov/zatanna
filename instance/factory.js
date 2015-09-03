@@ -33,6 +33,13 @@ Factory.prototype.createInstance = function(dao, description, injection) {
         }
     }
 
+    if (injection && injection.select) {
+        result.selectDescription = {};
+        for (var name in injection.select) {
+            result.selectDescription[name] = injection.select[name].bind(result);
+        }
+    }
+
     return result;
 };
 
