@@ -6,7 +6,7 @@ module.exports = function(Instance) {
         var _where       = where || {};
         var _description = description || {};
 
-        _description.fields = _description.fields ? _description.fields : parseFields(this.description.fields);
+        _description.fields = _description.fields ? _description.fields.slice() : parseFields(this.description.fields);
         _description.join   = _description.join || [];
 
         if (this.selectDescription) {
