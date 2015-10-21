@@ -1,6 +1,6 @@
 #Introduction
 
-Zatanna is a DAO realization for postgresql.
+Zatanna is a DAO implementation for postgresql.
 
 #Example
 
