@@ -73,34 +73,45 @@ DAO.prototype.executeSql = function(sql, params) {
     this.queue.push({ sql : sql, params : params });
 };
 
-DAO.prototype.execute = function() {
-    var that = this;
-    return Promise.using(that.createClient(), function(client) {
-        return that.dispatchEvent(DAO.EVENTS.BEFORE_EXECUTE).then(function() {
-            return new Promise(function (resolve, reject) { //TODO Really?
-                var result = [];
-                if (that.queue.length == 0) {
-                    return resolve(result);
-                }
-                function executeSql(query) {
-                    client.query(query.sql, query.params, function (error, res) {
-                        if (error) {
-                            that.queue = [];
-                            that.logger.log(4, [{sql: query.sql, params: query.params, error: error}]);
-                            return reject(error);
-                        }
-                        that.logger.log(0, [{sql: query.sql, params: query.params, result: res}]);
+DAO.prototype.execute = function(useTransaction) {
+    function executeSql(query) {
+        var self = this;
+        return self.client.queryAsync(query.sql, query.params).then(function (res) {
+            that.logger.log(0, [{sql: query.sql, params: query.params, result: res}]);
 
-                        result.push(res);
-                        if (that.queue.length == 0) {
-                            return resolve(result);
-                        }
-                        executeSql(that.queue.shift());
-                    });
-                }
-                executeSql(that.queue.shift());
-            });
-        })
+            self.result.push(res);
+            if (that.queue.length === 0) {
+                return self.result;
+            }
+            return executeSql.call(self, that.queue.shift());
+        }).catch(function (error) {
+            that.queue = [];
+            that.logger.log(4, [{sql: query.sql, params: query.params, error: error}]);
+            if (useTransaction) {
+                return executeSql.call(self, { sql: 'ROLLBACK;' }).then(function () {
+                    throw error;
+                });
+            }
+
+            throw error;
+        });
+    }
+
+    var that = this;
+
+    if (useTransaction) {
+        that.queue.unshift({ sql: 'BEGIN TRANSACTION;' });
+        that.queue.push({ sql: 'COMMIT;' });
+    }
+
+    return Promise.using(that.createClient(), function(callbackClient) {
+        var environment = {
+            result : [],
+            client : Promise.promisifyAll(callbackClient)
+        };
+        return that.dispatchEvent(DAO.EVENTS.BEFORE_EXECUTE).then(function() {
+            return that.queue.length === 0 ? [] : executeSql.call(environment, that.queue.shift());
+        });
     }).then(function (result) {
         return that.dispatchEvent(DAO.EVENTS.AFTER_EXECUTE, [ result ]).then(function() { return result });
     });

@@ -179,6 +179,53 @@ describe('DAO', function() {
         });
     });
 
+    it('supports successful transactions', function (done) {
+        var beforeExecute = sinon.spy();
+        var afterExecute = sinon.spy();
+        var dao = new DAO(config.db.main);
+
+        dao.on(DAO.EVENTS.BEFORE_EXECUTE, beforeExecute);
+        dao.on(DAO.EVENTS.AFTER_EXECUTE, afterExecute);
+        dao.logger.set(createLogger(), 0);
+
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
+        dao.execute().then(function () {
+            dao.executeSql('INSERT INTO "Organizations" VALUES ($1, $2);', [ 1, 'Umbrella' ]);
+            dao.execute(true).then(function () {
+                return dao.select('SELECT "id", "name" FROM "Organizations"');
+            }).then(function(result) {
+                assert.deepEqual(result, [ { id : 1, name : 'Umbrella' } ]);
+                done();
+            }).catch(done);
+        });
+    });
+
+    it('supports failing transactions', function (done) {
+        var beforeExecute = sinon.spy();
+        var afterExecute = sinon.spy();
+        var dao = new DAO(config.db.main);
+
+        dao.on(DAO.EVENTS.BEFORE_EXECUTE, beforeExecute);
+        dao.on(DAO.EVENTS.AFTER_EXECUTE, afterExecute);
+        dao.logger.set(createLogger(), 0);
+
+        dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
+        dao.executeSql('CREATE TABLE "Organizations" (id smallint, name text);');
+        dao.execute().then(function () {
+            dao.executeSql('INSERT INTO "Organizations" VALUES ($1, $2);', [ 1, 'Umbrella' ]);
+            dao.executeSql('INSERT INTO "Organizations" VALUES ($1, $2);', [ 'Not a number', 'Umbrella' ]);
+            dao.execute(true).then(function () {
+                done('Should not succeed');
+            }).catch(function () {
+                return dao.select('SELECT "id", "name" FROM "Organizations"').then(function(result) {
+                    assert.lengthOf(result, 0, 'See catch result length');
+                    done();
+                }).catch(done);
+            });
+        });
+    });
+
     afterEach(function(done) {
         var dao = new DAO(config.db.main);
         dao.executeSql('DROP TABLE IF EXISTS "Organizations";');
