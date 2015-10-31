@@ -1,5 +1,6 @@
 var Promise = require("bluebird");
 var pg      = require("pg");
+var QueryStream = require('pg-query-stream');
 
 var Factory = require("./instance/factory");
 var Logger  = require("./logger");
@@ -67,6 +68,27 @@ DAO.prototype.select = function(sql, params) {
 
 DAO.prototype.selectOne = function(sql, params) {
     return this.select(sql, params).then(function(result) { return result[0]; });
+};
+
+DAO.prototype.selectStream = function(sql, params) {
+    var that = this;
+
+    return new Promise(function(resolve, reject) {
+        pg.connect(that.config, function(error, client, done) {
+            if (error) { that.logger.log(4, [error]); return reject(error); }
+
+            var readable = client.query(new QueryStream(sql, params))
+
+            readable.on('error', function(error) {
+                done();
+                that.logger.log(4, [{sql: sql, params: params, error: error}]);
+            });
+
+            readable.on('end', done);
+
+            resolve(readable);
+        });
+    });
 };
 
 DAO.prototype.executeSql = function(sql, params) {
