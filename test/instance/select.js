@@ -30,6 +30,34 @@ describe('Instance_Select', function() {
         }).catch(done);
     });
 
+    it('Select with stream', function(done) {
+        var dao = new DAO(config.db.main);
+        var members = new Instance(dao, members_description);
+
+        members.selectStream().then(function(readable) {
+            var result = [];
+
+            readable.on('data', function(row) {
+                result.push(row);
+            });
+
+            readable.on('end', function() {
+                result.sort(function(a, b) { return a.id > b.id ? 1 : 0; });
+
+                assert.deepEqual(result, [
+                    { id : 1, organization : 1, name : 'Ozwell E. Spencer', age : 33 },
+                    { id : 2, organization : 1, name : 'Albert Wesker', age : 28 },
+                    { id : 3, organization : 1, name : 'Sergei Vladimir', age : 36 },
+                    { id : 4, organization : 2, name : 'Miles Bennett Dyson', age : 19 }
+                ], 'See valid result');
+
+                done();
+            });
+
+            readable.on('error', done);
+        }).catch(done);
+    });
+
     it('Select with custom fields', function(done) {
         var dao     = new DAO(config.db.main);
         var members = new Instance(dao, members_description);
