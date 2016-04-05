@@ -18,6 +18,8 @@ function DAO(config, path) {
     this.config = config;
     this.queue  = [];
     this.logger = new Logger();
+    this.maxRetries = config.maxRetries || 3;
+    this.delay = config.delay || 100;
 
     Events(this);
 
@@ -28,17 +30,25 @@ function DAO(config, path) {
 
 DAO.prototype.createClient = function() {
     var that = this;
-    return new Promise(function(resolve, reject) {
-        var client = new pg.Client(that.config);
-        client.connect(function(error) {
-            if (error) {
-                that.logger.log(4, [ error ]);
-                return reject(error);
-            }
-            that.logger.log(0, [ 'Connected' ]);
-            resolve(client);
-        });
-    }).disposer(function (client) {
+    var retries = 0;
+    function connect () {
+        return new Promise(function(resolve, reject) {
+            var client = new pg.Client(that.config);
+            client.connect(function(error) {
+                if (error) {
+                    if (retries++ >= that.maxRetries) {
+                        that.logger.log(4, [ error ]);
+                        return reject(error);
+                    }
+                    return Promise.delay(that.delay * (0.5 + Math.random())).then(connect).then(resolve).catch(reject);
+                }
+                that.logger.log(0, [ 'Connected' ]);
+                resolve(client);
+            });
+        })
+    }
+
+    return connect().disposer(function (client) {
         client.end();
         that.logger.log(0, [ 'Disconnected' ]);
     });
