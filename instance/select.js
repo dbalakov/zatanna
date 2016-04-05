@@ -49,6 +49,10 @@ module.exports = function(Instance) {
         return this._select('selectOne', where, description);
     };
 
+    Instance.prototype.selectStream = function(where, description) {
+        return this._select('selectStream', where, description);
+    };
+
     Instance.prototype.createFieldsForSelect = function(fields, params) {
         var result = [];
         for (var i = 0; i < fields.length; i++) {
