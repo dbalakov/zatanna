@@ -29,7 +29,7 @@ function DAO(config, path) {
     }
 }
 
-DAO.prototype.createClient = function() {
+DAO.prototype.createClient = function(onConnection) {
     var that = this;
     var retries = 0;
     function connect () {
@@ -43,8 +43,29 @@ DAO.prototype.createClient = function() {
                     }
                     return Promise.delay(that.delay * (0.5 + Math.random())).then(connect).then(resolve).catch(reject);
                 }
+
                 that.logger.log(0, [ 'Connected' ]);
-                resolve(client);
+
+                if (onConnection) {
+                    var query = client.query(onConnection.sql, onConnection.params);
+                    var result = [];
+
+                    query.on('row', function (row) {
+                        result.push(row);
+                    });
+
+                    query.on('error', function (error) {
+                        that.logger.log(4, [{sql: onConnection.sql, params: onConnection.params, error: error}]);
+                        reject(error);
+                    });
+
+                    query.on('end', function () {
+                        that.logger.log(0, [{sql: onConnection.sql, params: onConnection.params, result: result}]);
+                        resolve(client);
+                    });
+                } else {
+                    resolve(client);
+                }
             });
         })
     }
@@ -55,9 +76,9 @@ DAO.prototype.createClient = function() {
     });
 };
 
-DAO.prototype.select = function(sql, params) {
+DAO.prototype.select = function(sql, params, onConnection) {
     var that = this;
-    return Promise.using(that.createClient(), function(client) {
+    return Promise.using(that.createClient(onConnection), function(client) {
         return new Promise(function (resolve, reject) {
             var result = [];
             var query = client.query(sql, params);
@@ -76,8 +97,8 @@ DAO.prototype.select = function(sql, params) {
     });
 };
 
-DAO.prototype.selectOne = function(sql, params) {
-    return this.select(sql, params).then(function(result) { return result[0]; });
+DAO.prototype.selectOne = function(sql, params, onConnection) {
+    return this.select(sql, params, onConnection).then(function(result) { return result[0]; });
 };
 
 DAO.prototype.selectStream = function(sql, params) {
