@@ -62,6 +62,20 @@ describe('DAO', function() {
 
     });
 
+    it('createClient: onConnection', function(done) {
+        var dao = new DAO(config.db.main);
+        var onConnection = {sql: 'SELECT 42 AS test;'};
+        dao.logger.set(createLogger(), 0);
+        var clientSpy;
+        Promise.using(dao.createClient(onConnection), function (client) {
+            assert(dao.logger.logger.log.args[1][0].result[0].test === 42, 'Logger.log was called with onConnection query result');
+            done();
+        }).catch(function (error) {
+            done(error);
+        })
+
+    });
+
     it('select: invalid config', function(done) {
         var dao = new DAO(invalid_config);
 

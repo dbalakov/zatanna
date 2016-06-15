@@ -38,7 +38,7 @@ module.exports = function(Instance) {
         var limitPart  = _description.limit ? (' LIMIT $' + params.push(description.limit)) : '';
         var offsetPart = _description.offset ? (' OFFSET $' + params.push(description.offset)) : '';
 
-        return this.dao[type]('SELECT ' + fieldsPart + ' FROM ' + fromPart + ' ' + wherePart + groupPart + orderPart + limitPart + offsetPart, params);
+        return this.dao[type]('SELECT ' + fieldsPart + ' FROM ' + fromPart + ' ' + wherePart + groupPart + orderPart + limitPart + offsetPart, params, _description.onConnection);
     };
 
     Instance.prototype.select = function(where, description) {
