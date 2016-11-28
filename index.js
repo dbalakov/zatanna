@@ -12,7 +12,9 @@ var DATE_PARSER = pg.types.getTypeParser(TIMESTAMP_WOTZ);
 pg.types.setTypeParser(TIMESTAMP_WOTZ, function(val) {
     if (val === null) { return null; }
 
-    return new Date(DATE_PARSER(val) - new Date().getTimezoneOffset() * 60 * 1000);
+    var parsedDate = DATE_PARSER(val);
+
+    return new Date(parsedDate - parsedDate.getTimezoneOffset() * 60 * 1000);
 });
 
 function DAO(config, path) {
