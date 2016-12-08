@@ -23,7 +23,7 @@ describe('DAO', function() {
     it('Constructor', function() {
         var dao = new DAO(config.db.main, cwd + '/test/env/models');
 
-        assert(dao.logger instanceof Logger, 'logger is Logger')
+        assert(dao.logger instanceof Logger, 'logger is Logger');
         assert.equal(dao.config, config.db.main, 'See valid config');
 
         assert.isDefined(dao.organizations, 'See instance organizations');
@@ -49,7 +49,7 @@ describe('DAO', function() {
         dao.logger.set(createLogger(), 0);
         var clientSpy;
         Promise.using(dao.createClient(), function (client) {
-            clientSpy = sinon.spy(client, "end");
+            clientSpy = sinon.spy(client, "release");
             assert(client.readyForQuery, 'Client is ready for query');
             assert(dao.logger.logger.log.calledWith('Connected'), 'Logger.log was called with "Connected" argument');
         }).then(function () {
@@ -66,8 +66,7 @@ describe('DAO', function() {
         var dao = new DAO(config.db.main);
         var onConnection = {sql: 'SELECT 42 AS test;'};
         dao.logger.set(createLogger(), 0);
-        var clientSpy;
-        Promise.using(dao.createClient(onConnection), function (client) {
+        Promise.using(dao.createClient(onConnection), function () {
             assert(dao.logger.logger.log.args[1][0].result[0].test === 42, 'Logger.log was called with onConnection query result');
             done();
         }).catch(function (error) {
@@ -185,7 +184,7 @@ describe('DAO', function() {
         dao.executeSql('CREATE TABLE "Dates" (date timestamp without time zone);');
         dao.executeSql('INSERT INTO "Dates" VALUES ($1);', [date]);
 
-        dao.execute().catch(done).then(function(result) {
+        dao.execute().catch(done).then(function() {
             return dao.selectOne('SELECT "date" FROM "Dates"');
         }).then(function(result) {
             assert.equal(result.date.toISOString(), date);
