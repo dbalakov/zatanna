@@ -34,10 +34,11 @@ function DAO(config, path) {
 DAO.prototype.createClient = function(onConnection) {
     var that = this;
     var retries = 0;
+    var doneFn;
     function connect () {
         return new Promise(function(resolve, reject) {
-            var client = new pg.Client(that.config);
-            client.connect(function(error) {
+            var pool = new pg.Pool(that.config);
+            pool.connect(function(error, client, done) {
                 if (error) {
                     if (retries++ >= that.maxRetries) {
                         that.logger.log(4, [ error ]);
@@ -45,7 +46,7 @@ DAO.prototype.createClient = function(onConnection) {
                     }
                     return Promise.delay(that.delay * (0.5 + Math.random())).then(connect).then(resolve).catch(reject);
                 }
-
+                doneFn = done;
                 that.logger.log(0, [ 'Connected' ]);
 
                 if (onConnection) {
@@ -73,7 +74,8 @@ DAO.prototype.createClient = function(onConnection) {
     }
 
     return connect().disposer(function (client) {
-        client.end();
+        client.release();
+        doneFn();
         that.logger.log(0, [ 'Disconnected' ]);
     });
 };
@@ -110,7 +112,7 @@ DAO.prototype.selectStream = function(sql, params) {
         pg.connect(that.config, function(error, client, done) {
             if (error) { that.logger.log(4, [error]); return reject(error); }
 
-            var readable = client.query(new QueryStream(sql, params))
+            var readable = client.query(new QueryStream(sql, params));
 
             readable.on('error', function(error) {
                 done();
