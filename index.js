@@ -17,8 +17,9 @@ pg.types.setTypeParser(TIMESTAMP_WOTZ, function(val) {
     return new Date(parsedDate - parsedDate.getTimezoneOffset() * 60 * 1000);
 });
 
-function DAO(config, path) {
+function DAO(config, path, pool) {
     this.config = config;
+    this.pool = pool;
     this.queue  = [];
     this.logger = new Logger();
     this.maxRetries = config.maxRetries || 3;
@@ -34,49 +35,64 @@ function DAO(config, path) {
 DAO.prototype.createClient = function(onConnection) {
     var that = this;
     var retries = 0;
-    var doneFn;
-    function connect () {
+
+    function connect() {
         return new Promise(function(resolve, reject) {
-            var pool = new pg.Pool(that.config);
-            pool.connect(function(error, client, done) {
+            function onConnectedOrAcquired(error, client) {
                 if (error) {
                     if (retries++ >= that.maxRetries) {
-                        that.logger.log(4, [ error ]);
+                        that.logger.log(4, [error]);
+
                         return reject(error);
                     }
+
                     return Promise.delay(that.delay * (0.5 + Math.random())).then(connect).then(resolve).catch(reject);
                 }
-                doneFn = done;
-                that.logger.log(0, [ 'Connected' ]);
+
+                that.logger.log(0, ['Connected']);
 
                 if (onConnection) {
                     var query = client.query(onConnection.sql, onConnection.params);
                     var result = [];
 
-                    query.on('row', function (row) {
+                    query.on('row', function(row) {
                         result.push(row);
                     });
 
-                    query.on('error', function (error) {
+                    query.on('error', function(error) {
                         that.logger.log(4, [{sql: onConnection.sql, params: onConnection.params, error: error}]);
                         reject(error);
                     });
 
-                    query.on('end', function () {
+                    query.on('end', function() {
                         that.logger.log(0, [{sql: onConnection.sql, params: onConnection.params, result: result}]);
                         resolve(client);
                     });
                 } else {
                     resolve(client);
                 }
-            });
+            }
+
+            if (that.pool) {
+                that.pool.connect(onConnectedOrAcquired);
+            } else {
+                var client = new pg.Client(that.config);
+
+                client.connect(function(error) {
+                    onConnectedOrAcquired(error, client);
+                });
+            }
         })
     }
 
-    return connect().disposer(function (client) {
-        client.release();
-        doneFn();
-        that.logger.log(0, [ 'Disconnected' ]);
+    return connect().disposer(function(client) {
+        if (that.pool) {
+            client.release();
+        } else {
+            client.end();
+        }
+
+        that.logger.log(0, ['Disconnected']);
     });
 };
 
@@ -112,7 +128,7 @@ DAO.prototype.selectStream = function(sql, params) {
         pg.connect(that.config, function(error, client, done) {
             if (error) { that.logger.log(4, [error]); return reject(error); }
 
-            var readable = client.query(new QueryStream(sql, params));
+            var readable = client.query(new QueryStream(sql, params))
 
             readable.on('error', function(error) {
                 done();
