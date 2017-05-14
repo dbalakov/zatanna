@@ -1,7 +1,7 @@
 {
   "name": "zatanna",
   "description": "DAO",
-  "version": "0.6.5",
+  "version": "0.7.0",
   "keywords": [
     "pg",
     "dao"
@@ -30,8 +30,8 @@
   },
   "dependencies": {
     "bluebird": "~2.9.34",
-    "pg": "~6.1.0",
-    "pg-query-stream": "~0.7.0",
+    "pg": "~6.1.5",
+    "pg-query-stream": "~1.0.0",
     "require-directory": "~2.1.1"
   },
   "main": "./index.js",

@@ -1,6 +1,7 @@
 var cwd = process.cwd();
 
 var Promise = require("bluebird");
+var pg = require("pg");
 
 var assert = require("chai").assert;
 var sinon  = require("sinon");
@@ -23,7 +24,7 @@ describe('DAO', function() {
     it('Constructor', function() {
         var dao = new DAO(config.db.main, cwd + '/test/env/models');
 
-        assert(dao.logger instanceof Logger, 'logger is Logger');
+        assert(dao.logger instanceof Logger, 'logger is Logger')
         assert.equal(dao.config, config.db.main, 'See valid config');
 
         assert.isDefined(dao.organizations, 'See instance organizations');
@@ -49,7 +50,7 @@ describe('DAO', function() {
         dao.logger.set(createLogger(), 0);
         var clientSpy;
         Promise.using(dao.createClient(), function (client) {
-            clientSpy = sinon.spy(client, "release");
+            clientSpy = sinon.spy(client, "end");
             assert(client.readyForQuery, 'Client is ready for query');
             assert(dao.logger.logger.log.calledWith('Connected'), 'Logger.log was called with "Connected" argument');
         }).then(function () {
@@ -66,8 +67,31 @@ describe('DAO', function() {
         var dao = new DAO(config.db.main);
         var onConnection = {sql: 'SELECT 42 AS test;'};
         dao.logger.set(createLogger(), 0);
-        Promise.using(dao.createClient(onConnection), function () {
+        var clientSpy;
+        Promise.using(dao.createClient(onConnection), function (client) {
             assert(dao.logger.logger.log.args[1][0].result[0].test === 42, 'Logger.log was called with onConnection query result');
+            done();
+        }).catch(function (error) {
+            done(error);
+        })
+
+    });
+
+    it('createClient: pool', function(done) {
+        var pool = new pg.Pool(config.db.main);
+        var dao = new DAO(config.db.main, undefined, pool);
+
+        dao.logger.set(createLogger(), 0);
+
+        var clientSpy;
+
+        Promise.using(dao.createClient(), function(client) {
+            clientSpy = sinon.spy(client, "release");
+            assert(client.readyForQuery, 'Client is ready for query');
+            assert(dao.logger.logger.log.calledWith('Connected'), 'Logger.log was called with "Connected" argument');
+        }).then(function () {
+            assert(dao.logger.logger.log.calledWith('Disconnected'), 'Logger.log was called with "Disconnected" argument');
+            assert(clientSpy.calledOnce, 'client.release was called');
             done();
         }).catch(function (error) {
             done(error);
@@ -184,7 +208,7 @@ describe('DAO', function() {
         dao.executeSql('CREATE TABLE "Dates" (date timestamp without time zone);');
         dao.executeSql('INSERT INTO "Dates" VALUES ($1);', [date]);
 
-        dao.execute().catch(done).then(function() {
+        dao.execute().catch(done).then(function(result) {
             return dao.selectOne('SELECT "date" FROM "Dates"');
         }).then(function(result) {
             assert.equal(result.date.toISOString(), date);
